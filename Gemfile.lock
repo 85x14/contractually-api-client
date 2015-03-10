@@ -17,6 +17,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  colored
   httparty
   slop
   steps
