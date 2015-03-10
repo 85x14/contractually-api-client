@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'slop'
-require 'open-uri'
 require 'csv'
 require File.expand_path('../../lib/contractually', __FILE__)
 
