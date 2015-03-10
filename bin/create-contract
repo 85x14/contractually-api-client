@@ -31,6 +31,15 @@ end
 
 raise "Must provide exactly one csv file." unless opts.arguments.length == 1
 
+if opts[:invite]
+  # Verify that the required headers are present before doing anything
+  headers = CSV.read(opts.arguments[0], headers: true).headers
+
+  raise "Must have a First Name column to invite a user" unless headers.include? "First Name"
+  raise "Must have a Last Name column to invite a user" unless headers.include? "Last Name"
+  raise "Must have an Email Address column to invite a user" unless headers.include? "Email Address"
+end
+
 CSV.foreach(opts.arguments[0], headers: true) do |row|
   api = Contractually::Api.new(opts[:server], opts[:token])
 
@@ -39,9 +48,9 @@ CSV.foreach(opts.arguments[0], headers: true) do |row|
   contract.fill_fields(row)
 
   if opts[:invite]
-    raise "Must have a First Name column to invite a user" if row["First Name"].nil? || row["First Name"] == ""
-    raise "Must have a Last Name column to invite a user" if row["Last Name"].nil? || row["Last Name"] == ""
-    raise "Must have an Email Address column to invite a user" if row["Email Address"].nil? || row["Email Address"] == ""
+    raise "Cannot have a blank First Name column when inviting a user" if row["First Name"] == ""
+    raise "Cannot have a blank Last Name column when inviting a user" if row["Last Name"] == ""
+    raise "Cannot have a blank Email Address column when inviting a user" if row["Email Address"] == ""
 
     name = "#{row["First Name"]} #{row["Last Name"]}"
     Contractually::Invite.new(api, contract, name, row["Email Address"])
