@@ -3,6 +3,7 @@
 require 'slop'
 require 'csv'
 require 'steps'
+require 'colored'
 require File.expand_path('../../lib/contractually', __FILE__)
 
 opts = Slop.parse do |o|
@@ -33,34 +34,41 @@ raise "Must provide exactly one csv file." unless opts.arguments.length == 1
 
 if opts[:invite]
   # Verify that the required headers are present before doing anything
-  headers = CSV.read(opts.arguments[0], headers: true).headers
+  headers = CSV.read(opts.arguments[0], headers: true, row_sep: :auto).headers
 
   raise "Must have a First Name column to invite a user" unless headers.include? "First Name"
   raise "Must have a Last Name column to invite a user" unless headers.include? "Last Name"
   raise "Must have an Email Address column to invite a user" unless headers.include? "Email Address"
 end
 
-CSV.foreach(opts.arguments[0], headers: true) do |row|
-  api = Contractually::Api.new(opts[:server], opts[:token])
+begin
+  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto) do |row|
+    api = Contractually::Api.new(opts[:server], opts[:token])
 
-  step "Creating contract for #{row[0]} (##{$. - 1})", vital: true do
-    @contract = Contractually::Contract.new(api, opts[:template])
+    message = row.headers.include?("First Name") ? "for #{row["First Name"]} " : ""
+    step "Creating contract #{message}(##{$. - 1})", vital: true do
+      @contract = Contractually::Contract.new(api, opts[:template])
 
-    "Created contract #{@contract.contract_id}"
-  end
+      "Created contract #{@contract.contract_id}"
+    end
 
-  step "Filling in fields", vital: true do
-    @contract.fill_fields(row)
-  end
+    step "Filling in fields", vital: true do
+      @contract.fill_fields(row)
+    end
 
-  if opts[:invite]
-    raise "Cannot have a blank First Name column when inviting a user" if row["First Name"] == ""
-    raise "Cannot have a blank Last Name column when inviting a user" if row["Last Name"] == ""
-    raise "Cannot have a blank Email Address column when inviting a user" if row["Email Address"] == ""
+    if opts[:invite]
+      raise "Cannot have a blank First Name column when inviting a user" if row["First Name"] == ""
+      raise "Cannot have a blank Last Name column when inviting a user" if row["Last Name"] == ""
+      raise "Cannot have a blank Email Address column when inviting a user" if row["Email Address"] == ""
 
-    name = "#{row["First Name"]} #{row["Last Name"]}"
-    step "Inviting #{name}", vital: true do
-      Contractually::Invite.new(api, @contract, name, row["Email Address"])
+      name = "#{row["First Name"]} #{row["Last Name"]}"
+      step "Inviting #{name}", vital: true do
+        Contractually::Invite.new(api, @contract, name, row["Email Address"])
+      end
     end
   end
+rescue Exception => e
+  puts "Error: Exception while creating contract. Not all contracts have been created.".red
+  puts "Note that re-running the script will re-create all contracts created so far.".red
+  raise e
 end
