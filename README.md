@@ -3,4 +3,7 @@ A simple implementation of the Contractually API. This creates a contract, fills
 To setup and run:
 * `git clone`
 * `bundle install`
-* `bin/create-contract.rb` - For options, see below
+* `bin/create-contract` will print help
+
+Sample usage: 
+`bin/create-contract -t mytoken -id 1000 --invite employees.csv`
