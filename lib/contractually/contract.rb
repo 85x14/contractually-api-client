@@ -10,8 +10,6 @@ module Contractually
 
       @contract_id = JSON.parse(response.body)["contract_id"]
       raise "Invalid contract id #{@contract_id}!" unless @contract_id.length == 5
-
-      puts "Created contract #{@contract_id}"
     end
 
     def fill_fields(fields)
@@ -20,8 +18,6 @@ module Contractually
 
       response = @api.put("/contracts/#{@contract_id}/fields", data)
       raise "Could not fill fields #{fields}: #{response.body}" unless response.code == 204
-
-      puts "Filled fields"
     end
 
     def contract_id

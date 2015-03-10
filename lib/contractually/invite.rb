@@ -15,8 +15,6 @@ module Contractually
 
       response = @api.post("/contracts/#{@contract_id}/parties", data)
       raise "Could not invite user #{name} @ #{email}: #{response.body}" unless response.code == 201
-
-      puts "Invited user #{name}"
     end
   end
 end

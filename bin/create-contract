@@ -2,6 +2,7 @@
 
 require 'slop'
 require 'csv'
+require 'steps'
 require File.expand_path('../../lib/contractually', __FILE__)
 
 opts = Slop.parse do |o|
@@ -42,9 +43,15 @@ end
 CSV.foreach(opts.arguments[0], headers: true) do |row|
   api = Contractually::Api.new(opts[:server], opts[:token])
 
-  contract = Contractually::Contract.new(api, opts[:template])
+  step "Creating contract for #{row[0]} (##{$. - 1})", vital: true do
+    @contract = Contractually::Contract.new(api, opts[:template])
 
-  contract.fill_fields(row)
+    "Created contract #{@contract.contract_id}"
+  end
+
+  step "Filling in fields", vital: true do
+    @contract.fill_fields(row)
+  end
 
   if opts[:invite]
     raise "Cannot have a blank First Name column when inviting a user" if row["First Name"] == ""
@@ -52,6 +59,8 @@ CSV.foreach(opts.arguments[0], headers: true) do |row|
     raise "Cannot have a blank Email Address column when inviting a user" if row["Email Address"] == ""
 
     name = "#{row["First Name"]} #{row["Last Name"]}"
-    Contractually::Invite.new(api, contract, name, row["Email Address"])
+    step "Inviting #{name}", vital: true do
+      Contractually::Invite.new(api, @contract, name, row["Email Address"])
+    end
   end
 end
