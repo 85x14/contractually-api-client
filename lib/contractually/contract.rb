@@ -1,5 +1,7 @@
 module Contractually
   class Contract
+    attr_reader :contract_id
+
     def initialize(api, template_id)
       @api = api
 
@@ -18,10 +20,6 @@ module Contractually
 
       response = @api.put("/contracts/#{@contract_id}/fields", data)
       raise "Could not fill fields #{fields}: #{response.body}" unless response.code == 204
-    end
-
-    def contract_id
-      @contract_id
     end
   end
 end
