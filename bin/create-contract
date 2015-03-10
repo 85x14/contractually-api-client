@@ -42,7 +42,7 @@ if opts[:invite]
 end
 
 begin
-  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto) do |row|
+  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto, skip_blanks: true) do |row|
     api = Contractually::Api.new(opts[:server], opts[:token])
 
     message = row.headers.include?("First Name") ? "for #{row["First Name"]} " : ""
