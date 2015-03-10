@@ -6,9 +6,11 @@ GEM
       multi_xml (>= 0.5.2)
     json (1.8.1)
     multi_xml (0.5.5)
+    slop (4.0.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   httparty
+  slop

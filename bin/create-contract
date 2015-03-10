@@ -1,23 +1,44 @@
 #!/usr/bin/env ruby
 
+require 'slop'
 require 'open-uri'
 require 'csv'
 require File.expand_path('../../lib/contractually', __FILE__)
 
-@server = ARGV[0]
-@api_token = ARGV[1]
-@template_id = ARGV[2]
-@filename = ARGV[3]
-@invite_user = ARGV[4]
+opts = Slop.parse do |o|
+  o.banner = "usage: create-contract [options] filename.csv"
+  o.separator ""
+  o.separator "A sample Contractually API client. Given a template and a csv, it creates a contract for each row in the csv. Each contract is filled in with values from the csv file provided. This is done by setting each field's value to the value of that row's column with the corresponding header. For example, if you have a field named 'Position Title', then its value will be filled in from the 'Position Title' column of the csv."
+  o.separator ""
+  o.separator "Required arguments:"
+  o.string '--server', 'URL of Contractually server. Defaults to https://api.contractual.ly', default: 'https://api.contractual.ly'
+  o.string '-t', '--token', 'Your Contractually API token'
+  o.integer '-id', '--template', 'ID of the template to use as the source document. Obtain this from the Contractually URL: https://contractual.ly/templates/:id/edit'
+  o.separator ""
+  o.separator "Optional arguments:"
+  o.null '--invite', 'Upon succesful contract creation, invite the user. Requires the source document to have the following (non-empty) columns: First Name, Last Name, Email Address'
+  o.on '--help', 'Usage help' do
+    puts o
+    exit
+  end
+end
 
-CSV.foreach(@filename, headers: true) do |row|
-  api = Contractually::Api.new(@server, @api_token)
+if opts.arguments.length == 0
+  # Output help
+  puts opts
+  exit
+end
 
-  contract = Contractually::Contract.new(api, @template_id)
+raise "Must provide exactly one csv file." unless opts.arguments.length == 1
+
+CSV.foreach(opts.arguments[0], headers: true) do |row|
+  api = Contractually::Api.new(opts[:server], opts[:token])
+
+  contract = Contractually::Contract.new(api, opts[:template])
 
   contract.fill_fields(row)
 
-  if @invite_user
+  if opts[:invite]
     raise "Must have a First Name column to invite a user" if row["First Name"].nil? || row["First Name"] == ""
     raise "Must have a Last Name column to invite a user" if row["Last Name"].nil? || row["Last Name"] == ""
     raise "Must have an Email Address column to invite a user" if row["Email Address"].nil? || row["Email Address"] == ""
