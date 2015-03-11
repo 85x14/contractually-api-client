@@ -42,9 +42,9 @@ if opts[:invite]
 end
 
 begin
-  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto, skip_blanks: true) do |row|
-    api = Contractually::Api.new(opts[:server], opts[:token])
+  api = Contractually::Api.new(opts[:server], opts[:token])
 
+  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto, skip_blanks: true) do |row|
     message = row.headers.include?("First Name") ? "for #{row["First Name"]} " : ""
     step "Creating contract #{message}(##{$. - 1})", vital: true do
       @contract = Contractually::Contract.new(api, opts[:template])
