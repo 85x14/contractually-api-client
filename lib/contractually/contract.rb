@@ -14,6 +14,13 @@ module Contractually
       raise "Invalid contract id #{@contract_id}!" unless @contract_id.length == 5
     end
 
+    def set_title(title)
+      data = { contract: { title: title } }
+
+      response = @api.put("/contracts/#{@contract_id}", data)
+      raise "Could set title: #{response.body}" unless response.code == 200
+    end
+
     def fill_fields(fields)
       # Have to URI encode the keys because nothing else does it for us
       data = { fields: Hash[fields.map{|k, v| [URI::encode(k), v] }] }

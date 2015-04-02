@@ -52,6 +52,12 @@ begin
       "Created contract #{@contract.contract_id}"
     end
 
+    if row.headers.include?("Contract Title")
+      step "Setting title", vital: true do
+        @contract.set_title(row["Contract Title"])
+      end
+    end
+
     step "Filling in fields", vital: true do
       @contract.fill_fields(row)
     end
