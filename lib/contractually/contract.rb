@@ -15,7 +15,6 @@ module Contractually
     end
 
     def set_title(title)
-      # Have to URI encode the keys because nothing else does it for us
       data = { contract: { title: title } }
 
       response = @api.put("/contracts/#{@contract_id}", data)
