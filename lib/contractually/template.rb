@@ -9,7 +9,7 @@ module Contractually
 
     def fields
       response = @api.get("/templates/#{template_id}/fields")
-      raise "Could not fetch template fields: #{response.body}" unless response.code == 201
+      raise "Could not fetch template fields: #{response.body}" unless response.code == 200
 
       JSON.parse(response.body)
     end
