@@ -64,7 +64,7 @@ def verify_csv_headers!(api, template_field_names, csv_headers)
 
     confirmation = $stdin.gets.chomp
 
-    unless !confirmation.length && confirmation.chomp.in?(["y", "Y"])
+    unless confirmation.length > 0 && ["y", "Y"].include?(confirmation.chomp)
       abort("Fix the mapping and try again.")
     end
   end
