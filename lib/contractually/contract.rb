@@ -2,9 +2,11 @@ module Contractually
   class Contract
     attr_reader :contract_id
 
-    def initialize(api, template_id)
+    def initialize(api)
       @api = api
+    end
 
+    def create_from_template(template_id)
       data = { template_id: template_id }
 
       response = @api.post("/contracts", data)
