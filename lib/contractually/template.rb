@@ -2,7 +2,8 @@ module Contractually
   class Template
     attr_accessor :template_id
 
-    def initialize(template_id)
+    def initialize(api, template_id)
+      @api = api
       self.template_id = template_id
     end
 
