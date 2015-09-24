@@ -32,19 +32,49 @@ end
 
 raise "Must provide exactly one csv file." unless opts.arguments.length == 1
 
+api = Contractually::Api.new(opts[:server], opts[:token])
+csv_headers = CSV.read(opts.arguments[0], headers: true, row_sep: :auto, encoding: 'windows-1251:utf-8').headers
+
 if opts[:invite]
   # Verify that the required headers are present before doing anything
-  headers = CSV.read(opts.arguments[0], headers: true, row_sep: :auto).headers
-
-  raise "Must have a First Name column to invite a user" unless headers.include? "First Name"
-  raise "Must have a Last Name column to invite a user" unless headers.include? "Last Name"
-  raise "Must have an Email Address column to invite a user" unless headers.include? "Email Address"
+  raise "Must have a First Name column to invite a user" unless csv_headers.include? "First Name"
+  raise "Must have a Last Name column to invite a user" unless csv_headers.include? "Last Name"
+  raise "Must have an Email Address column to invite a user" unless csv_headers.include? "Email Address"
 end
 
-begin
-  api = Contractually::Api.new(opts[:server], opts[:token])
+def verify_csv_headers!(api, template_field_names, csv_headers)
+  unmapped_csv_headers = csv_headers.reject{ |header| template_field_names.include?(header) }
+  unmapped_template_fields = template_field_names.reject{ |field_name| csv_headers.include?(field_name) }
 
-  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto, skip_blanks: true) do |row|
+  unless unmapped_csv_headers.empty? && unmapped_template_fields.empty?
+    if unmapped_csv_headers.any?
+      puts "These fields are headers in the CSV, but are not mapped to anything in the template:".red
+      puts unmapped_csv_headers.join(", ").red
+    end
+
+    puts "\n" if unmapped_csv_headers.any? && unmapped_template_fields.any?
+
+    if unmapped_template_fields.any?
+      puts "These fields are fields in the template, but are not present in the CSV:".red
+      puts unmapped_template_fields.join(", ").red
+    end
+
+    puts "\n"
+    puts 'Please confirm that this is correct: [y\N] '.green
+
+    confirmation = $stdin.gets.chomp
+
+    unless !confirmation.length && confirmation.chomp.in?(["y", "Y"])
+      abort("Fix the mapping and try again.")
+    end
+  end
+end
+
+template_field_names = Contractually::Template.new(api, opts[:template]).fields.map {|field| field["name"] }
+verify_csv_headers!(api, template_field_names, csv_headers)
+
+begin
+  CSV.foreach(opts.arguments[0], headers: true, row_sep: :auto, skip_blanks: true, encoding: 'windows-1251:utf-8') do |row|
     @contract = Contractually::Contract.new(api)
 
     message = row.headers.include?("First Name") ? "for #{row["First Name"]} " : ""
