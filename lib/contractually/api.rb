@@ -17,6 +17,10 @@ module Contractually
       self.class.send(type, path, options)
     end
 
+    def get(path)
+      self.query(:get, path, {})
+    end
+
     def post(path, data)
       self.query(:post, path, data)
     end
