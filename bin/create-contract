@@ -49,14 +49,14 @@ def verify_csv_headers!(api, template_field_names, csv_headers)
   unless unmapped_csv_headers.empty? && unmapped_template_fields.empty?
     if unmapped_csv_headers.any?
       puts "These fields are headers in the CSV, but are not mapped to anything in the template:".red
-      puts unmapped_csv_headers.sort.join(",").red
+      puts "\"#{unmapped_csv_headers.sort.join('", "')}\"".red
     end
 
     puts "\n" if unmapped_csv_headers.any? && unmapped_template_fields.any?
 
     if unmapped_template_fields.any?
       puts "These fields are fields in the template, but are not present in the CSV:".red
-      puts unmapped_template_fields.sort.join(",").red
+      puts "\"#{unmapped_template_fields.sort.join('", "')}\"".red
     end
 
     puts "\n"
